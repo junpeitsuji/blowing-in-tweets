@@ -16,6 +16,7 @@ final int UI_STATE_INPUT = 0;
 final int UI_STATE_TRACKING = 1;
 int   uiState = UI_STATE_INPUT;
 color bgColor = color(0, 0, 0);
+int   frame = 10;            // 1秒間当たりのフレーム数
 int   uiFrame = 0;
 
 // objects for serial communication with arduino 
@@ -26,17 +27,11 @@ String comPort = "";
 TwitterStreamFactory factory;
 String[] track = { "" };
 
-// objects for visualization and motor control
-int frame = 10;            // 1秒間当たりのフレーム数
-int duration = frame * 10; // 1 tweet の効果持続 (10 秒間)
-int power = 10;            // 1 tweet あたり 10 pt 加算
-int frameBufferLength = frame * 100;
-int[] frameBuffer = new int[frameBufferLength];
-
 // objects for calculate tweets per sec
-final int tweetsCountDuration = 10; // 10 秒間隔で計測
+final int tweetsCountDuration = 5; // 5 秒間隔で計測
 int   tweetsCount      = 0;
 float tweetsPerSec     = 0.0;
+int   rotation         = 0;
 
 void setup() {
   size(640, 640);
@@ -66,6 +61,23 @@ void setup() {
   
 }
 
+int getRotation(float tweetsPerSec){
+   if( tweetsPerSec == 0.0 ){
+     return 0; 
+   }
+   
+   // log(20) -> 255, log(0.2) -> 40 にマッピング
+   float val = map(log(tweetsPerSec), log(0.5), log(20.0), 120, 255);
+   
+   if(val > 255){
+     val = 255;
+   }
+   else if(val < 0){
+     val = 0; 
+   }
+   return (int)val;
+}
+
 void draw() {
 
   if(uiState == UI_STATE_TRACKING) {
@@ -73,29 +85,21 @@ void draw() {
     if(uiFrame % (frame * tweetsCountDuration) == 0 ){
       tweetsPerSec = tweetsCount / (float)tweetsCountDuration;
       tweetsCount = 0;
-    }
-    
-    int value = frameBuffer[uiFrame % frameBufferLength];
-    frameBuffer[uiFrame % frameBufferLength] = 0;
-  
-    if(value > 255)
-      value = 255;
-    else if(value < 0)
-      value = 0;
-    
-    bgColor = color(0, 0, value);
-    background(bgColor);
-  
-    try {
-      if( arduino != null ){
-        if(uiFrame % 10 == 0){
-            arduino.write(value);
+      
+      rotation = getRotation(tweetsPerSec);      
+
+      try {
+        if( arduino != null ){
+          arduino.write(rotation);
         }
-      }
-    } catch( Exception e ) {
-      e.printStackTrace();
+      } catch( Exception e ) {
+        e.printStackTrace();
+      }      
     }
-    
+        
+    bgColor = color(0, 0, rotation);
+    background(bgColor);
+      
     uiFrame++;
   }
   else if(uiState == UI_STATE_INPUT){
@@ -129,9 +133,6 @@ void mouseReleased() {
 }
 
 void startTracking() {
-  for(int i=0; i<frameBufferLength; i++){
-    frameBuffer[i] = 0;
-  }
 
   TwitterStream twitterStream = factory.getInstance();
   
@@ -149,12 +150,7 @@ void startTracking() {
       tweetBody = tweetBody.replace("\t", "");
 
       System.out.println(screenname + " : " + userId + " : " + tweetBody );
-      
-      for(int i=0; i<duration; i++){
-        int index = (i + uiFrame) % frameBufferLength;
-        frameBuffer[index] += power;
-      }
-      
+
       tweetsCount++;
     }
 
@@ -218,5 +214,4 @@ Configuration getTwitterConfiguration(String jsonFileName) {
   
   return config.build();
 }
-
 
