@@ -23,7 +23,7 @@ dev.twitter.com からアクセストークンを取得し、 processing_blowing
     	"accessSecret": "********"
     }
 
-twitter4j をダウンロードし、展開した.jarファイルをすべて blowing-in-tweets/processing_blowing_in_tweets/code 以下に配置
+[このサイト](https://docs.google.com/file/d/0BzyVHU69QO3mbVdxUGZsVE4yUFk/edit?usp=drive_web)から twitter4j for processing をダウンロードし、展開したファイルをすべて blowing-in-tweets/processing_blowing_in_tweets/code 以下に配置
 
 arduino_blowing_in_tweets.ino を開いて arduino に書き込む
 
