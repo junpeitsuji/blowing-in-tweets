@@ -42,15 +42,20 @@ void setup() {
   size(640, 640);
   frameRate(frame);
   
-  if( Serial.list().length > 0 ) {
-    comPort = Serial.list()[0];
+  try {
+    if( Serial.list().length > 0 ) {
+      comPort = Serial.list()[0];
+      // comPort = "/dev/tty.usbmodem1421";  // for Mac
     
-    arduino = new Serial(this, Serial.list()[0], 9600);
-    arduino.bufferUntil('\n');
+      arduino = new Serial(null, Serial.list()[0], 9600);
+      arduino.bufferUntil('\n');
     
-  }
-  else {
-    arduino = null;
+    }
+    else {
+      arduino = null;
+    }
+  } catch (Exception e) {
+    arduino = null; 
   }
 
   // アクセストークンの設定
@@ -180,7 +185,9 @@ void keyPressed() {
     }
   }
   if( key == ESC ){
-    arduino.write(0);  
+    if(arduino != null) {
+      arduino.write(0);  
+    }
     super.exit();
   }
    
@@ -188,7 +195,9 @@ void keyPressed() {
 
 void exit() {
   //ここに終了処理
-  arduino.write(0);  
+  if( arduino != null ) {
+    arduino.write(0);  
+  }
   super.exit();
 }
 
