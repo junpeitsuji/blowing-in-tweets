@@ -42,7 +42,7 @@ void setup() {
       comPort = Serial.list()[0];
       // comPort = "/dev/tty.usbmodem1421";  // for Mac
     
-      arduino = new Serial(this, Serial.list()[0], 9600);
+      arduino = new Serial(this, comPort, 9600);
       arduino.bufferUntil('\n');
     
     }
