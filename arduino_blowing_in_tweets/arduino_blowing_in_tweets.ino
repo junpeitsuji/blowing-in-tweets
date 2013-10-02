@@ -17,7 +17,8 @@ void loop() {
   if( Serial.available() > 0 ) {
     int val = Serial.read();
     forward(val);
-    Serial.println("f");
+    Serial.print("forward: ");
+    Serial.println(val);
     delay(500);
   }
 }
